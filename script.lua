@@ -18,11 +18,19 @@ local VisualizerBars = {}
 local loopConnection = nil -- Quản lý loop hiệu ứng tránh bị chồng luồng khi reset
 
 local function CreateFakeBoombox()
-    -- Dọn dẹp cũ nếu có
-    if FakeBoombox then FakeBoombox:Destroy() end
-    for _, bar in pairs(VisualizerBars) do if bar then bar:Destroy() end end
+    -- [SỬA LỖI]: Dọn dẹp cũ triệt để trước khi tạo mới để tránh xung đột khi chuyển bài
+    if loopConnection then 
+        loopConnection:Disconnect() 
+        loopConnection = nil
+    end
+    if FakeBoombox then 
+        FakeBoombox:Destroy() 
+        FakeBoombox = nil
+    end
+    for _, bar in pairs(VisualizerBars) do 
+        if bar.Part then bar.Part:Destroy() end 
+    end
     VisualizerBars = {}
-    if loopConnection then loopConnection:Disconnect() end
     
     local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     if not character or not (character:FindFirstChild("UpperTorso") or character:FindFirstChild("Torso")) then return end
@@ -124,7 +132,7 @@ end
 -- TỰ ĐỘNG ĐEO LẠI KHI DIE (HỒI SINH KHÔNG MẤT LOA)
 LocalPlayer.CharacterAdded:Connect(function(char)
     char:WaitForChild("Humanoid")
-    task.wait(0.5) 
+    task.wait(0.6) -- Tăng một chút thời gian chờ để nhân vật load hẳn các khớp xương (Torso)
     if LocalSound.IsPlaying or LocalSound.TimePosition > 0 then
         CreateFakeBoombox()
     end
@@ -202,11 +210,11 @@ PlayBtn.MouseButton1Click:Connect(function()
         LocalSound.SoundId = "rbxassetid://" .. cleanID
         LocalSound:Play()
         
+        -- Thực hiện tạo mới / cập nhật lại loa ngay lập tức
         CreateFakeBoombox()
-        print("Thanh Phuc đã cập nhật script mới khít dải đèn!")
+        print("Thanh Phuc đã cập nhật bài hát mới thành công, Boombox vẫn giữ nguyên vị trí!")
     else
         InputBox.Text = ""
         InputBox.PlaceholderText = "ID không hợp lệ!"
     end
 end)
-
